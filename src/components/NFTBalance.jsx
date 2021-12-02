@@ -1,7 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useMoralis, useNFTBalances } from "react-moralis";
-import { Card, Image, Tooltip, Modal, Input, Skeleton } from "antd";
-import { FileSearchOutlined, SendOutlined, ShoppingCartOutlined } from "@ant-design/icons";
+import { Card, Image, Tooltip, Modal, Input, Skeleton, Button } from "antd";
+import {
+  FileSearchOutlined,
+  SendOutlined,
+  ShoppingCartOutlined,
+} from "@ant-design/icons";
 import { getExplorer } from "helpers/networks";
 import AddressInput from "./AddressInput";
 const { Meta } = Card;
@@ -17,16 +21,25 @@ const styles = {
     width: "100%",
     gap: "10px",
   },
+  buttonStyle: {
+    padding: "10px",
+    borderRadius: "15px",
+    alignItems: "center",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+  },
 };
 
 function NFTBalance() {
-  const { data: NFTBalances } = useNFTBalances();
+  // const { data: NFTBalances } = useNFTBalances();
   const { Moralis, chainId } = useMoralis();
   const [visible, setVisibility] = useState(false);
   const [receiverToSend, setReceiver] = useState(null);
   const [amountToSend, setAmount] = useState(null);
   const [nftToSend, setNftToSend] = useState(null);
   const [isPending, setIsPending] = useState(false);
+  const [myNFTs, setMyNFTs] = useState(null);
 
   async function transfer(nft, amount, receiver) {
     const options = {
@@ -61,26 +74,61 @@ function NFTBalance() {
     setAmount(e.target.value);
   };
 
-  console.log("NFTBalances", NFTBalances);
+  const getPolygonNFTs = async () => {
+    const address = "0x3cc599ca20cb4996f10847a98c523539480dddbd";
+    const options = { chain: "matic", address };
+    const NFTs = await Moralis.Web3API.account.getNFTs(options);
+    if (NFTs.result) {
+      setMyNFTs(NFTs);
+    }
+  };
+
+  useEffect(() => {
+    (async () => {
+      try {
+        console.log("Getting NFTs ----");
+        await getPolygonNFTs();
+      } catch (error) {
+        console.log("Error in getting NFTs   ", error);
+      }
+    })();
+  }, []);
+
+  console.log(myNFTs);
+
   return (
     <>
       <div style={styles.NFTs}>
-        <Skeleton loading={!NFTBalances?.result}>
-          {NFTBalances?.result &&
-            NFTBalances.result.map((nft, index) => (
+        <Skeleton loading={!myNFTs?.result}>
+          {/* <Button
+            color="black"
+            style={styles.buttonStyle}
+            onClick={getPolygonNFTs}
+          >
+            View NFTs
+          </Button> */}
+          {myNFTs?.result &&
+            myNFTs.result.map((nft, index) => (
               <Card
                 hoverable
                 actions={[
                   <Tooltip title="View On Blockexplorer">
                     <FileSearchOutlined
-                      onClick={() => window.open(`${getExplorer(chainId)}address/${nft.token_address}`, "_blank")}
+                      onClick={() =>
+                        window.open(
+                          `${getExplorer(chainId)}address/${nft.token_address}`,
+                          "_blank"
+                        )
+                      }
                     />
                   </Tooltip>,
                   <Tooltip title="Transfer NFT">
                     <SendOutlined onClick={() => handleTransferClick(nft)} />
                   </Tooltip>,
                   <Tooltip title="Sell On OpenSea">
-                    <ShoppingCartOutlined onClick={() => alert("OPENSEA INTEGRATION COMING!")} />
+                    <ShoppingCartOutlined
+                      onClick={() => alert("OPENSEA INTEGRATION COMING!")}
+                    />
                   </Tooltip>,
                 ]}
                 style={{ width: 240, border: "2px solid #e7eaf3" }}
@@ -110,7 +158,10 @@ function NFTBalance() {
       >
         <AddressInput autoFocus placeholder="Receiver" onChange={setReceiver} />
         {nftToSend && nftToSend.contract_type === "erc1155" && (
-          <Input placeholder="amount to send" onChange={(e) => handleChange(e)} />
+          <Input
+            placeholder="amount to send"
+            onChange={(e) => handleChange(e)}
+          />
         )}
       </Modal>
     </>

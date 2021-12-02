@@ -69,7 +69,7 @@ const App = ({ isServerInfo }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, isWeb3Enabled]);
 
-  const userWalletID = isAuthenticated ? user?.attributes.accounts[0] : null;
+  const userWalletID = isAuthenticated ? user?.attributes.accounts[0] : "";
 
   return (
     <Layout style={{ height: "100vh", overflow: "auto" }}>
@@ -92,7 +92,7 @@ const App = ({ isServerInfo }) => {
 
         <div style={styles.content}>
           <Switch>
-            <Route exact path="/quickstart">
+            <Route exact path="/tornStart">
               <QuickStart isServerInfo={isServerInfo} />
             </Route>
             <Route path="/wallet">
