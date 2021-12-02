@@ -32,9 +32,9 @@ function Account() {
     return (
       <div
         style={styles.account}
-        onClick={authenticate({
-          signingMessage: "Welcome to dApp with Moralis",
-        })}
+        onClick={() =>
+          authenticate({ signingMessage: "Welcome to dApp with Moralis" })
+        }
       >
         <p style={styles.text}>Authenticate</p>
       </div>
